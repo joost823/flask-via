@@ -27,7 +27,7 @@
 */
 
 /*
-  See Contributors.md file for a list of developers who have contributed code 
+  See Contributors.md file for a list of developers who have contributed code
   to VIA codebase.
 /*
 
@@ -1017,7 +1017,6 @@ function show_image(image_index) {
     });
     _via_current_image.src = img_reader.result;
   }, false);
-
   if (_via_img_metadata[img_id].base64_img_data === '') {
     // load image from file
     img_reader.readAsDataURL( _via_img_metadata[img_id].fileref );

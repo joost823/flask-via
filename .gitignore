@@ -2,3 +2,8 @@ venv/
 via.sqlite
 templates/via_flask.html
 __pycache__/
+.gitignore
+.cfignore
+manifest.yml
+Procfile
+runtime.txt
