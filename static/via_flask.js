@@ -155,8 +155,13 @@ function send_classified_image_to_backend() {
   var filename = _via_img_metadata[_via_image_id].filename
 
   var oData = new FormData();
-  oData.append("image_file", blob, filename);
+
+  // only add the image when it's not stored in the db yet
+  if(_via_img_metadata[_via_image_id].db_id == -1){
+    oData.append("image_file", blob, filename);
+  }
   oData.append('image_metadata_and_regions', JSON.stringify(_via_img_metadata[_via_image_id]))
+  oData.append('db_id', _via_img_metadata[_via_image_id].db_id)
 
   var oReq = new XMLHttpRequest();
   oReq.open("POST", "/add_classified_img_to_db", true);

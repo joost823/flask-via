@@ -11,10 +11,10 @@ from flask_admin import Admin, expose
 from flask_admin.actions import action
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.event import listens_for
-from wtforms import StringField, validators
 from flask_admin.contrib.sqla import ModelView
 from wtforms.validators import ValidationError
 from sqlalchemy.ext.hybrid import hybrid_property
+from wtforms import StringField, validators, IntegerField
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from flask import Flask, request, url_for, render_template, jsonify, send_from_directory, redirect
 
@@ -69,9 +69,14 @@ db.create_all()
 class AddAnnotatedImageForm(FlaskForm):
     image_metadata_and_regions = StringField('Regions', [validators.required()])
     image_file = FileField('image', validators=[
-        FileRequired(),
         FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')
     ])
+    db_id = IntegerField('db id', [validators.required()])
+
+    def validate_db_id(form, field):
+        if field.data == -1:
+            if not form.image_file.data:
+                raise ValidationError('file required if not yet in db')
 
     def validate_image_metadata_and_regions(form, field):
         try:
@@ -160,13 +165,13 @@ def add_classified_img_to_db():
 
         db.session.commit()
 
-        pic.filename_when_uploaded = form.image_file.data.filename
-        filename_old_no_ext, ext = os.path.splitext(form.image_file.data.filename)
-        pic.filename = str(pic.id) + ext
+        if form.db_id == -1:
+            pic.filename_when_uploaded = form.image_file.data.filename
+            filename_old_no_ext, ext = os.path.splitext(form.image_file.data.filename)
+            pic.filename = str(pic.id) + ext
+            form.image_file.data.save(app.config['via_folder'] + '/' + pic.filename)
+            pic.filesize = os.path.getsize(app.config['via_folder'] + '/' + pic.filename)
 
-        form.image_file.data.save(app.config['via_folder'] + '/' + pic.filename)
-
-        pic.filesize = os.path.getsize(app.config['via_folder'] + '/' + pic.filename)
         pic.file_attributes = json.dumps(form.file_attributes)
 
         for region in form.regions:
